@@ -24,13 +24,7 @@ module.exports = {
     'react/prop-types': 0,
     'react/display-name': 0,
 
-    //MUI
-     'no-restricted-imports': [
-      'error',
-      {
-        'patterns': [{ 'regex': '^@mui/[^/]+$' }]
-      }
-    ],
+    
 
     //common
     'no-console': 1,
