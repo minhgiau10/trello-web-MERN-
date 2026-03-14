@@ -24,8 +24,6 @@ module.exports = {
     'react/prop-types': 0,
     'react/display-name': 0,
 
-    
-
     //common
     'no-console': 1,
     'no-lonely-if': 1,
