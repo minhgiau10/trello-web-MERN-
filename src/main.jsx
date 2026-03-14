@@ -6,7 +6,6 @@ import { Experimental_CssVarsProvider as CssVarsProvider } from '@mui/material/s
 import theme from './theme'
 
 
-
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <CssVarsProvider theme={theme}>
