@@ -33,7 +33,7 @@ function Profiles() {
           aria-expanded={open ? 'true' : undefined}
         >
           <Avatar
-            sx={{ width: 34, height: 34 }}
+            sx={{ width: 36, height: 36 }}
             alt="MinhGiauDev"
             src= "https://yt3.ggpht.com/Q88-xftzQSJuWe922Rjw64O3s27DnnwBs0EqmJRwH4gymrgT7tn9n25J5F2g0w-lyym2fxQj=s88-c-k-c0x00ffffff-no-rj"
           />
