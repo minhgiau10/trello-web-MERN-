@@ -29,6 +29,7 @@ const MENU_STYLES = {
 function BoardBar() {
   return (
     <Box sx={{
+      '&::-webkit-scrollbar-track': { m:2 },
       width: '100%',
       height: (theme) => theme.trello.boardBarHeight,
       display: 'flex',
@@ -77,7 +78,7 @@ function BoardBar() {
         <Button
           variant="outlined"
           startIcon={ <PersonAddIcon /> }
-          sx ={{ 
+          sx ={{
             color: 'white',
             borderColor: 'white',
             '&:hover': { borderColor: 'white' }
@@ -93,7 +94,10 @@ function BoardBar() {
               width: 34,
               height: 34,
               fontSize: 16,
-              border: 'none'
+              border: 'none',
+              color: 'white',
+              cursor: 'pointer',
+              '&: first-of-type': { bgcolor: '#a4b0be' }
             }
           }}
         >

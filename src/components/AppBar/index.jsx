@@ -25,6 +25,7 @@ function AppBar() {
   const [searchValue, setSearchValue] = useState('')
   return (
     <Box sx={{
+      '&::-webkit-scrollbar-track': { m:2 },
       width: '100%',
       height: (theme) => theme.trello.appBarHeight,
       display: 'flex',
