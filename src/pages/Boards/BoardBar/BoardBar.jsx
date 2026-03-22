@@ -10,6 +10,7 @@ import Avatar from '@mui/material/Avatar'
 import AvatarGroup from '@mui/material/AvatarGroup'
 import { Tooltip } from '@mui/material'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
+import { capitalizeFirstLetter } from '~/utils/fomatters'
 
 
 const MENU_STYLES = {
@@ -26,7 +27,8 @@ const MENU_STYLES = {
   }
 
 }
-function BoardBar() {
+function BoardBar({ board }) {
+
   return (
     <Box sx={{
       '&::-webkit-scrollbar-track': { m:2 },
@@ -44,13 +46,13 @@ function BoardBar() {
         <Chip
           sx = { MENU_STYLES }
           icon={<DashboardIcon />}
-          label="MinhGiauDev MERN Stack Board"
+          label={board?.title}
           clickable
         />
         <Chip
           sx = { MENU_STYLES }
           icon={<VpnLockIcon />}
-          label="Public/Private WorkSpace"
+          label={capitalizeFirstLetter(board?.type)}
           clickable
         />
         <Chip
