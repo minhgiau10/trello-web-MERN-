@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box'
 import ListColumns from './ListColumns/ListColumns'
 import { mapOrder } from '~/utils/sorts'
+
 import {
   DndContext,
   // PointerSensor,
@@ -9,7 +10,8 @@ import {
   MouseSensor,
   TouchSensor,
   DragOverlay,
-  defaultDropAnimationSideEffects
+  defaultDropAnimationSideEffects,
+  closestCorners
 } from '@dnd-kit/core'
 import { useEffect, useState } from 'react'
 import { arrayMove } from '@dnd-kit/sortable'
@@ -28,7 +30,7 @@ function BoardContent({ board }) {
 
   const mouseSensor = useSensor( MouseSensor, { activationConstraint: { distance: 10 } })
 
-  const touchSensor = useSensor( TouchSensor, { activationConstraint: { deplay: 250, tolerance: 500 } })
+  const touchSensor = useSensor( TouchSensor, { activationConstraint: { delay: 250, tolerance: 500 } })
 
   // const sensors = useSensors(pointerSensor)
   const sensors = useSensors(mouseSensor, touchSensor)
@@ -37,9 +39,9 @@ function BoardContent({ board }) {
   // at the same time we can have 1 active drag item,
   // but we can use this state to know the type of active drag item is column or card,
   // because when we drag and drop we will have different logic for column and card
-  const [activeDragItemId, setActiveDragItemId] = useState([null])
-  const [activeDragItemType, setActiveDragItemType] = useState([null])
-  const [activeDragItemData, setActiveDragItemData] = useState([null])
+  const [activeDragItemId, setActiveDragItemId] = useState(null)
+  const [activeDragItemType, setActiveDragItemType] = useState(null)
+  const [activeDragItemData, setActiveDragItemData] = useState(null)
 
   useEffect(() => {
     setOrderedColumns(mapOrder(board?.columns, board?.columnOrderIds, '_id'))
@@ -92,9 +94,8 @@ function BoardContent({ board }) {
         // console.log('overCardIndex', overCardIndex)
 
         let newCardIndex
-        const isBelowOverItem =
-                active.rect.current.translated &&
-                active.rect.current.translated.top > over.rect.top + over.rect.height
+        const isBelowOverItem = active.rect.current.translated &&
+          active.rect.current.translated.top > over.rect.top + over.rect.height
         const modifier = isBelowOverItem ? 1 : 0
         // console.log(overCardIndex)
 
@@ -141,7 +142,7 @@ function BoardContent({ board }) {
 
     if (activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.CARD) {
       // console.log('handleDragEnd for CARD')
-      return
+      // return
     }
 
     const { active, over } = event
@@ -171,10 +172,13 @@ function BoardContent({ board }) {
 
   return (
     <DndContext
+      sensors={sensors}
+      // conflict of Card 01 image
+      collisionDetection={closestCorners}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
-      sensors={sensors}>
+    >
       <Box sx={{
         bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#34495e' : '#1976d2'),
         width: '100%',
