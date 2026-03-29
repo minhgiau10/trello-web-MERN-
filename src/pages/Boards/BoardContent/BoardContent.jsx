@@ -54,6 +54,62 @@ function BoardContent({ board }) {
     return orderedColumns.find(column => column?.cards.map(c => c._id)?.includes(cardId))
   }
 
+  //Update state in case of we drag card between different column
+  const moveCardBetweenDifferentColumns = (
+    overColumn,
+    overCardId,
+    active,
+    over,
+    activeColumn,
+    activeDraggingCardId,
+    activeDraggingCardData
+  ) => {
+    setOrderedColumns(prevColumns => {
+      // Find the index of the card in the end of column where we dragging
+      const overCardIndex = overColumn?.cards?.findIndex(c => c._id === overCardId)
+      // console.log('overCardIndex', overCardIndex)
+
+      let newCardIndex
+      const isBelowOverItem = active.rect.current.translated &&
+          active.rect.current.translated.top > over.rect.top + over.rect.height
+      const modifier = isBelowOverItem ? 1 : 0
+      // console.log(overCardIndex)
+
+      newCardIndex = overCardIndex >= 0 ? overCardIndex + modifier : overColumn?.cards.length + 1
+      // console.log(newCardIndex)
+
+      const nextColumns = cloneDeep(prevColumns)
+      const nextActiveColumn = nextColumns.find(c => c._id === activeColumn._id)
+      const nextOverColumn = nextColumns.find(c => c._id === overColumn._id)
+      // console.log("active column", activeColumn._id)
+      // console.log("over column", overColumn._id)
+      // console.log('nextColumns', nextColumns)
+      // console.log('nextActiveColumn', nextActiveColumn)
+      // console.log('nextOverColumn', nextOverColumn)
+
+      // old coulmn we need to delete card we are dragging
+      if (nextActiveColumn) {
+        // Delete card in old column ( when we drag card outside of column)
+        nextActiveColumn.cards = nextActiveColumn.cards.filter(c => c._id !== activeDraggingCardId)
+        //Update CardOrderIds for sync
+        nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(c => c._id)
+      }
+
+      // new column
+      if (nextOverColumn) {
+        //Check if we drag card over other card , it exist  overColumn yet, if exist we need to delete it first
+        nextOverColumn.cards = nextOverColumn.cards.filter(c => c._id !== activeDraggingCardId)
+        //second we need to add card dragged in overColumn follow the index
+        nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, activeDraggingCardData)
+
+        //Update CardOrderIds for sync
+        nextOverColumn.cardOrderIds = nextOverColumn.cards.map(c => c._id)
+      }
+
+      return nextColumns
+    })
+  }
+
 
   // Trigger when drag a element
   const handleDragStart = (event) => {
@@ -64,7 +120,7 @@ function BoardContent({ board }) {
     setActiveDragItemData(event?.active?.data?.current)
 
 
-    // this will perfrom of action set value for oldColumn if we dragg card
+    // this will perfrom of action set value for oldColumn if we drag card
     if (event?.active?.data?.current?.columnId) {
       setOldColumnWhenDraggingCard(findColumnByCardId(event?.active?.id))
     }
@@ -97,50 +153,15 @@ function BoardContent({ board }) {
     // we drag over other column , the logic will treat
     if (activeColumn._id !== overColumn._id) {
       // Handle card moved to another column
-      setOrderedColumns(prevColumns => {
-        // Find the index of the card in the end of column where we dragging
-        const overCardIndex = overColumn?.cards?.findIndex(c => c._id === overCardId)
-        // console.log('overCardIndex', overCardIndex)
-
-        let newCardIndex
-        const isBelowOverItem = active.rect.current.translated &&
-          active.rect.current.translated.top > over.rect.top + over.rect.height
-        const modifier = isBelowOverItem ? 1 : 0
-        // console.log(overCardIndex)
-
-        newCardIndex = overCardIndex >= 0 ? overCardIndex + modifier : overColumn?.cards.length + 1
-        // console.log(newCardIndex)
-
-        const nextColumns = cloneDeep(prevColumns)
-        const nextActiveColumn = nextColumns.find(c => c._id === activeColumn._id)
-        const nextOverColumn = nextColumns.find(c => c._id === overColumn._id)
-        // console.log("active column", activeColumn._id)
-        // console.log("over column", overColumn._id)
-        // console.log('nextColumns', nextColumns)
-        // console.log('nextActiveColumn', nextActiveColumn)
-        // console.log('nextOverColumn', nextOverColumn)
-
-        // old coulmn we need to delete card we are dragging
-        if (nextActiveColumn) {
-          // Delete card in old column ( when we drag card outside of column)
-          nextActiveColumn.cards = nextActiveColumn.cards.filter(c => c._id !== activeDraggingCardId)
-          //Update CardOrderIds for sync
-          nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(c => c._id)
-        }
-
-        // new column
-        if (nextOverColumn) {
-          //Check if we drag card over other card , it exist  overColumn yet, if exist we need to delete it first
-          nextOverColumn.cards = nextOverColumn.cards.filter(c => c._id !== activeDraggingCardId)
-          //second we need to add card dragged in overColumn follow the index
-          nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, activeDraggingCardData)
-
-          //Update CardOrderIds for sync
-          nextOverColumn.cardOrderIds = nextOverColumn.cards.map(c => c._id)
-        }
-
-        return nextColumns
-      })
+      moveCardBetweenDifferentColumns(
+        overColumn,
+        overCardId,
+        active,
+        over,
+        activeColumn,
+        activeDraggingCardId,
+        activeDraggingCardData
+      )
     }
   }
 
@@ -169,7 +190,15 @@ function BoardContent({ board }) {
 
       // we have to set state in drag start because when we drag the onDragOver updated state one
       if (oldColumnWhenDraggingCard._id !== overColumn._id) {
-        //
+        moveCardBetweenDifferentColumns(
+          overColumn,
+          overCardId,
+          active,
+          over,
+          activeColumn,
+          activeDraggingCardId,
+          activeDraggingCardData
+        )
       } else {
         // Action of dragging card same column
 
@@ -187,7 +216,6 @@ function BoardContent({ board }) {
 
           //Find the column  that we dragging card
           const targetColumn = nextColumns.find(column => column._id === overColumn._id)
-
           // Update cards and cardOrderIds for column we drag card in the same column
           targetColumn.cards = dndOrderedCards
           targetColumn.cardOrderIds = dndOrderedCards.map(card => card._id)
@@ -202,7 +230,6 @@ function BoardContent({ board }) {
     //treate drag and drop column
     if (activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.COLUMN) {
       if ( active.id !== over.id) {
-        console.log('handleDragEnd for COLUMN')
         const oldColumnIndex = orderedColumns.findIndex(c => c._id === active.id)
         const newColumnIndex = orderedColumns.findIndex(c => c._id === over.id)
 
