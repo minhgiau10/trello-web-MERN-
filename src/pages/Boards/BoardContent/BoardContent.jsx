@@ -17,10 +17,11 @@ import {
 } from '@dnd-kit/core'
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { arrayMove } from '@dnd-kit/sortable'
-import { cloneDeep } from 'lodash'
+import { cloneDeep, isEmpty } from 'lodash'
 
 import Column from './ListColumns/Column/Column'
 import Card from './ListColumns/Column/ListCards/Card/Card'
+import { generatePlaceholderCard } from '~/utils/fomatters'
 
 const ACTIVE_DRAG_ITEM_TYPE = {
   COLUMN: 'ACTIVE_DRAG_ITEM_TYPE_COLUMN',
@@ -96,8 +97,15 @@ function BoardContent({ board }) {
       if (nextActiveColumn) {
         // Delete card in old column ( when we drag card outside of column)
         nextActiveColumn.cards = nextActiveColumn.cards.filter(c => c._id !== activeDraggingCardId)
+
+        //Add PlaceHolder Card if the column is empty
+        if (isEmpty(nextActiveColumn.cards)) {
+          nextActiveColumn.cards = [generatePlaceholderCard(nextActiveColumn)]
+        }
         //Update CardOrderIds for sync
         nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(c => c._id)
+
+
       }
 
       // new column
@@ -106,6 +114,9 @@ function BoardContent({ board }) {
         nextOverColumn.cards = nextOverColumn.cards.filter(c => c._id !== activeDraggingCardId)
         //second we need to add card dragged in overColumn follow the index
         nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, activeDraggingCardData)
+
+        //Delete Card placeholder if it exist in column we drag card to
+        nextOverColumn.cards = nextOverColumn.cards.filter(c => !c.FE_PlaceholderCard)
 
         //Update CardOrderIds for sync
         nextOverColumn.cardOrderIds = nextOverColumn.cards.map(c => c._id)
