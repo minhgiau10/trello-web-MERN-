@@ -13,9 +13,7 @@ import {
   defaultDropAnimationSideEffects,
   closestCorners,
   pointerWithin,
-  rectIntersection,
-  getFirstCollision,
-  closestCenter
+  getFirstCollision
 } from '@dnd-kit/core'
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { arrayMove } from '@dnd-kit/sortable'
@@ -23,7 +21,6 @@ import { cloneDeep } from 'lodash'
 
 import Column from './ListColumns/Column/Column'
 import Card from './ListColumns/Column/ListCards/Card/Card'
-import { AgricultureSharp } from '@mui/icons-material'
 
 const ACTIVE_DRAG_ITEM_TYPE = {
   COLUMN: 'ACTIVE_DRAG_ITEM_TYPE_COLUMN',
@@ -268,19 +265,25 @@ function BoardContent({ board }) {
     //find the points of impact - intersection with pointer
     const pointerIntersections = pointerWithin(args)
 
+
+    //Because flickering related to pointerIntersections [null]  so we need to return
+    if (!pointerIntersections?.length) return
+
     // return array of collision here
-    const intersections = !!pointerIntersections?.length ? pointerIntersections : rectIntersection(args)
+    //Dont need because we was return pointerIntersections if it not exists
+    // const intersections = !!pointerIntersections?.length ? pointerIntersections : rectIntersection(args)
 
     // console.log(intersections)
     // Find first OverId from intersection array
-    let overId = getFirstCollision(intersections, 'id')
+    let overId = getFirstCollision(pointerIntersections, 'id')
+    // console.log(overId)
 
     if (overId) {
       const checkColumn = orderedColumns.find(column => column._id === overId)
       // console.log(checkColumn)
       if (checkColumn) {
         // console.log('overId before', overId)
-        overId = closestCenter({
+        overId = closestCorners({
           ...args,
           droppableContainers: args.droppableContainers.filter(container => {
             return (container.id !== overId) && (checkColumn?.cardOrderIds?.includes(container.id))
